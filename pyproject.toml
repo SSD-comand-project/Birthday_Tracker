@@ -7,7 +7,7 @@ authors = [
     "Amir Bairamov <a.bairamov@innopolis.university>",
     "Polina Kostikova <p.kostikova@innopolis.university>",
 ]
-packages = [{include = "src"}]
+packages = [{include = "app"}]
 package-mode = true
 
 [tool.poetry.dependencies]
