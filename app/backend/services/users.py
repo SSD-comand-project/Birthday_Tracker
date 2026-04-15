@@ -7,7 +7,7 @@ from app.backend.database import get_db
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def _to_dict(row) -> dict[str, Any]:
+def _to_dict(row) -> Optional[dict[str, Any]]:
     return dict(row) if row else None
 
 
@@ -18,7 +18,9 @@ def create_user(username: str, password_hash: str, full_name: str, birth_date: s
     """
     with get_db() as conn:
         cur = conn.execute(query, (username, password_hash, full_name, birth_date))
-        return cur.lastrowid
+        user_id = cur.lastrowid
+        assert user_id is not None, "Failed to create user"
+        return user_id
 
 
 def register_user(username: str, password: str, full_name: str, birth_date: str) -> int:
@@ -47,6 +49,18 @@ def authenticate_user(username: str, password: str) -> Optional[dict[str, Any]]:
     if not pwd_context.verify(password, user["password_hash"]):
         return None
     return user
+
+
+def search_users_by_name(name_query: str) -> list[dict[str, Any]]:
+    """Searches for users by full_name."""
+    query = (
+        "SELECT id, username, full_name, birth_date "
+        "FROM users WHERE full_name LIKE ? "
+        "ORDER BY full_name"
+    )
+    with get_db() as conn:
+        rows = conn.execute(query, (f"%{name_query}%",)).fetchall()
+        return [dict(r) for r in rows]
 
 
 def list_users() -> list[dict[str, Any]]:
