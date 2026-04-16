@@ -9,6 +9,7 @@ The goal of this project is to provide an MVP application that allows a company 
 - store basic employee data,
 - manage employee records (add/edit, optional delete),
 - view upcoming birthdays (today + next 7 days),
+- search employees by full name to see they birthdays,
 - protect management functionality with basic authentication.
 
 ---
