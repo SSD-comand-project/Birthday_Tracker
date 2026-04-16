@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from api import API_URL, get_headers, handle_response
+from api import API_URL, REQUEST_TIMEOUT, get_headers, handle_response
 
 
 def render_user_card(user):
@@ -25,6 +25,7 @@ def birthdays_today():
     response = requests.get(
         f"{API_URL}/birthdays/today",
         headers=get_headers(),
+        timeout=REQUEST_TIMEOUT,
     )
 
     data = handle_response(response)
@@ -45,6 +46,7 @@ def birthdays_upcoming():
     response = requests.get(
         f"{API_URL}/birthdays/upcoming",
         headers=get_headers(),
+        timeout=REQUEST_TIMEOUT,
     )
 
     data = handle_response(response)

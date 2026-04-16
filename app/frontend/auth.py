@@ -1,14 +1,14 @@
 import streamlit as st
 import requests
-from api import API_URL
+from api import API_URL, REQUEST_TIMEOUT
 from api import handle_response
-
 
 
 def login(username, password):
     response = requests.post(
         f"{API_URL}/login",
         json={"username": username, "password": password},
+        timeout=REQUEST_TIMEOUT,
     )
 
     data = handle_response(response)
@@ -29,6 +29,7 @@ def register(username, password, full_name, birth_date):
             "full_name": full_name,
             "birth_date": birth_date,
         },
+        timeout=REQUEST_TIMEOUT,
     )
 
     data = handle_response(response)

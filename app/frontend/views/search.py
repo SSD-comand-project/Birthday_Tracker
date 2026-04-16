@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from api import API_URL, get_headers, handle_response
+from api import API_URL, REQUEST_TIMEOUT, get_headers, handle_response
 
 
 def render_user_card(user):
@@ -29,6 +29,7 @@ def search_page():
             f"{API_URL}/birthdays/search",
             params={"name": query},
             headers=get_headers(),
+            timeout=REQUEST_TIMEOUT,
         )
 
         data = handle_response(response)

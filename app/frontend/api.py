@@ -1,7 +1,7 @@
-import requests
 import streamlit as st
 
 API_URL = "http://localhost:8000"
+REQUEST_TIMEOUT = 5
 
 
 def get_headers():

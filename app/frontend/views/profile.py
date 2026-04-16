@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from datetime import date
-from api import API_URL, get_headers, handle_response
+from api import API_URL, REQUEST_TIMEOUT, get_headers, handle_response
 
 
 def profile_page():
@@ -10,6 +10,7 @@ def profile_page():
     response = requests.get(
         f"{API_URL}/users/me",
         headers=get_headers(),
+        timeout=REQUEST_TIMEOUT,
     )
 
     user = handle_response(response)
@@ -30,6 +31,7 @@ def profile_page():
                 "birth_date": birth_date.isoformat(),
             },
             headers=get_headers(),
+            timeout=REQUEST_TIMEOUT,
         )
 
         data = handle_response(response)
@@ -40,6 +42,7 @@ def profile_page():
         response = requests.delete(
             f"{API_URL}/users/me",
             headers=get_headers(),
+            timeout=REQUEST_TIMEOUT,
         )
 
         if response.status_code == 204:
