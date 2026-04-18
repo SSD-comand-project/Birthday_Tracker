@@ -1,6 +1,11 @@
 import streamlit as st
 import requests
-from api import API_URL, REQUEST_TIMEOUT, get_headers, handle_response
+from app.frontend.api import (
+    API_URL,
+    REQUEST_TIMEOUT,
+    get_headers,
+    handle_response,
+)
 
 
 def render_user_card(user):

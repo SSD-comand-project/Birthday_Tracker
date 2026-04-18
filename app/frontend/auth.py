@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
-from api import API_URL, REQUEST_TIMEOUT
-from api import handle_response
+from app.frontend.api import API_URL, REQUEST_TIMEOUT, handle_response
 
 
 def login(username, password):

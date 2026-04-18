@@ -1,7 +1,12 @@
 import streamlit as st
 import requests
 from datetime import date
-from api import API_URL, REQUEST_TIMEOUT, get_headers, handle_response
+from app.frontend.api import (
+    API_URL,
+    REQUEST_TIMEOUT,
+    get_headers,
+    handle_response,
+)
 
 
 def profile_page():
