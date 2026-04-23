@@ -69,3 +69,32 @@ jobs:
       run: poetry run pytest tests --cov=app --cov-report=term-missing -v --cov-fail-under=20
       env:
          DB_PATH: ${{ github.workspace }}/data/test.db
+
+  terraform-lint:
+    name: Terraform Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt
+        run: |
+          cd infra
+          terraform fmt -check
+
+      - name: TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Run TFLint
+        run: |
+          cd infra
+          tflint
+
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra
