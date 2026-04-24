@@ -31,19 +31,48 @@ resource "yandex_compute_instance" "vm" {
 
     user-data = <<EOF
 #cloud-config
+
 package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose
+
+write_files:
+  - path: /app/docker-compose.yml
+    permissions: '0644'
+    content: |
+      version: "3.9"
+
+      services:
+        backend:
+          image: mrdebuff/birthday-backend:latest
+          container_name: birthday-backend
+          environment:
+            - DB_PATH=/app/data/birthday_tracker.db
+          volumes:
+            - /app/data:/app/data
+          ports:
+            - "8000:8000"
+          restart: unless-stopped
+
+        frontend:
+          image: mrdebuff/birthday-frontend:latest
+          container_name: birthday-frontend
+          environment:
+            - API_BASE_URL=http://backend:8000
+          depends_on:
+            - backend
+          ports:
+            - "8501:8501"
+          restart: unless-stopped
 
 runcmd:
-  - apt-get update
-  - apt-get install -y docker.io docker-compose
+  - mkdir -p /app/data
   - systemctl enable docker
   - systemctl start docker
-
-  - mkdir -p /app
   - cd /app
-
-  - echo '${file("${path.module}/../docker-compose.yml")}' > docker-compose.yml
-
   - docker-compose pull
   - docker-compose up -d
 EOF
