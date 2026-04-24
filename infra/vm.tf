@@ -18,6 +18,8 @@ resource "yandex_compute_instance" "vm" {
     }
   }
 
+  # checkov:skip=CKV_YC_2: Public IP is required for accessing the application
+
   network_interface {
     subnet_id          = yandex_vpc_subnet.subnet.id
     security_group_ids = [yandex_vpc_security_group.sg.id]
