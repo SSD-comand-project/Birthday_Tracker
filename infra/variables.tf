@@ -1,23 +1,20 @@
 variable "cloud_id" {
-  type = string
+  description = "Yandex Cloud ID"
+  type        = string
 }
 
 variable "folder_id" {
-  type = string
+  description = "Yandex Cloud folder ID"
+  type        = string
 }
 
 variable "zone" {
-  default = "ru-central1-a"
+  description = "Availability zone"
+  type        = string
+  default     = "ru-central1-a"
 }
 
 variable "ssh_public_key" {
-  type = string
-}
-
-variable "dockerhub_username" {
-  type = string
-}
-
-variable "ssh_public_key" {
-  type = string
+  description = "SSH public key content"
+  type        = string
 }
