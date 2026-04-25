@@ -88,7 +88,7 @@ runcmd:
   - systemctl start docker
   - cd /app
 
-  # Run Docker
+  # Run Docker Compose
   - docker-compose pull
   - docker-compose up -d
 
