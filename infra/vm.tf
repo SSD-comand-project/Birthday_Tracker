@@ -38,6 +38,7 @@ package_upgrade: true
 packages:
   - docker.io
   - docker-compose
+  - curl
 
 write_files:
   - path: /app/docker-compose.yml
@@ -68,13 +69,36 @@ write_files:
             - "8501:8501"
           restart: unless-stopped
 
+        watchtower:
+          image: containrrr/watchtower
+          volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+          command: --interval 60
+          restart: unless-stopped
+
+  - path: /app/update-duckdns.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      curl "https://www.duckdns.org/update?domains=${var.duckdns_domain}&token=${var.duckdns_token}&ip="
+
 runcmd:
   - mkdir -p /app/data
   - systemctl enable docker
   - systemctl start docker
   - cd /app
+
+  # Run Docker
   - docker-compose pull
   - docker-compose up -d
+
+  # First run of DuckDNS
+  - /app/update-duckdns.sh
+
+  # Cron for DuckDNS every 5 minutes
+  - echo "*/5 * * * * root /app/update-duckdns.sh" > /etc/cron.d/duckdns
+  - chmod 644 /etc/cron.d/duckdns
+  - systemctl restart cron
 EOF
   }
 }
