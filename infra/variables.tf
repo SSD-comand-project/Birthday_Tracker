@@ -18,3 +18,14 @@ variable "ssh_public_key" {
   description = "SSH public key content"
   type        = string
 }
+
+variable "duckdns_token" {
+  description = "DuckDNS token"
+  type        = string
+  sensitive   = true
+}
+
+variable "duckdns_domain" {
+  description = "DuckDNS domain (without .duckdns.org)"
+  type        = string
+}
