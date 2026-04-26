@@ -29,3 +29,9 @@ variable "duckdns_domain" {
   description = "DuckDNS domain (without .duckdns.org)"
   type        = string
 }
+
+variable "grafana_admin_password" {
+  description = "Grafana admin password"
+  type        = string
+  sensitive   = true
+}
