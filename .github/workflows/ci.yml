@@ -131,7 +131,8 @@ jobs:
             --platform linux/amd64 \
             -t mrdebuff/birthday-backend:latest \
             -t mrdebuff/birthday-backend:${IMAGE_VERSION} \
-            --push ./app/backend
+            -f ./app/backend/Dockerfile \
+            --push .
 
       - name: Build and push frontend image
         run: |
