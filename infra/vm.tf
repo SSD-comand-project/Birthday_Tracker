@@ -309,8 +309,8 @@ runcmd:
   - cd /app
 
   # Run Docker Compose
-  - docker compose -f /app/docker-compose.yml pull
-  - docker compose -f /app/docker-compose.yml up -d
+  - docker-compose pull
+  - docker-compose up -d
 
   # First run of DuckDNS
   - /app/update-duckdns.sh
