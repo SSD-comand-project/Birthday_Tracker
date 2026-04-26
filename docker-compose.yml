@@ -1,11 +1,12 @@
-version: "3.9"
-
 services:
   backend:
-    image: mrdebuff/birthday-backend:latest
+    build:
+      context: .
+      dockerfile: ./app/backend/Dockerfile
+    image: sunflye/birthday-backend:latest
     container_name: birthday-backend
     environment:
-      - DB_PATH=data/birthday_tracker.db
+      - DB_PATH=/app/data/birthday_tracker.db
     volumes:
       - ./data:/app/data
     ports:
@@ -13,7 +14,10 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: mrdebuff/birthday-frontend:latest
+    build:
+        context: .
+        dockerfile: ./app/frontend/Dockerfile
+    image: sunflye/birthday-frontend:latest
     container_name: birthday-frontend
     environment:
       - API_BASE_URL=http://backend:8000
@@ -21,4 +25,39 @@ services:
       - backend
     ports:
       - "8501:8501"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DEFAULT_APP_HOME_DASHBOARD_UID=backend-overview
     restart: unless-stopped
