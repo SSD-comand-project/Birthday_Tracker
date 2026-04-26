@@ -121,7 +121,6 @@ def register(req: RegisterRequest):
         )
         user_id = cur.lastrowid
         conn.commit()
-
     # Generate JWT token immediately
     token = create_access_token({"sub": req.username})
     return {

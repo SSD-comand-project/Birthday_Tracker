@@ -30,7 +30,7 @@ def seed_admin_user() -> None:
 
 def seed_users_every_7_days(year: int | None = None) -> int:
     """
-    Создаёт пользователей так, чтобы день рождения был каждые 7 дней в течение года.
+    Create users that have birthdays every 7 days in a year.
     """
     if year is None:
         year = date.today().year
