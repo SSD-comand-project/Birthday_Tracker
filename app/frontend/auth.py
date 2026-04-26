@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from app.frontend.api import API_URL, REQUEST_TIMEOUT, handle_response
+from datetime import date
 
 
 def login(username, password):
@@ -56,7 +57,17 @@ def auth_page():
         username = st.text_input("Username", key="reg_user")
         password = st.text_input("Password", type="password", key="reg_pass")
         full_name = st.text_input("Full Name")
-        birth_date = st.date_input("Birth Date")
+
+        today = date.today()
+        min_date = today.replace(year=today.year - 100)
+        max_date = today
+
+        birth_date = st.date_input(
+            "Birth Date",
+            value=today,
+            min_value=min_date,
+            max_value=max_date
+        )
 
         if st.button("Register"):
             register(
