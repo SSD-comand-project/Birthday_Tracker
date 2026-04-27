@@ -1,127 +1,87 @@
-# Company Birthday Tracker
+# Company Birthday Tracker — Technical Report
 
-A secure Internal service to track employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring.
+A secure Internal service for tracking employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring and automated IaC deployment.
+(ДОБАВИТЬ ВЕЗДЕ ПЕРЕМЕННУЮ ДЛЯ JWT, УТУТ ОПИСАТЬ И В ДОКЕР КОМПОЗ)
 
-## Application & Monitoring URLs
+## Project Access Points (Cloud)
 
 - **Web Application:** [http://birthday-tracker.duckdns.org:8501](http://birthday-tracker.duckdns.org:8501/)
-- **API Docs:** [http://birthday-tracker.duckdns.org:8000/docs](http://birthday-tracker.duckdns.org:8000/docs)
+- **API Docs (Swagger):** [http://birthday-tracker.duckdns.org:8000/docs](http://birthday-tracker.duckdns.org:8000/docs)
 - **Grafana Dashboards:** [http://birthday-tracker.duckdns.org:3000](http://birthday-tracker.duckdns.org:3000/)
-- **Prometheus:** [http://birthday-tracker.duckdns.org:9090](http://birthday-tracker.duckdns.org:9090/)
-- **Alertmanager:** [http://birthday-tracker.duckdns.org:9093](http://birthday-tracker.duckdns.org:9093/)
-
-> ℹ️ For local development, use `localhost` instead of `birthday-tracker.duckdns.org`.
-
-
-## Project Goal & Scope
-
-The goal of this project is to provide a reliable MVP application for:
-- **Employee Data Management:** Securely store and manage employee records (add/edit/delete).
-- **Birthday Visibility:** View upcoming birthdays (today + next 7 days).
-- **Search:** Quickly find colleagues by full name.
-- **Security:** Protect management functionality with JWT-based authentication.
-- **Observability:** Monitor system health via a dedicated metrics stack.
+- **Monitoring Tools:** [Prometheus (9090)](http://birthday-tracker.duckdns.org:9090/) | [Alertmanager (9093)](http://birthday-tracker.duckdns.org:9093/)
 
 ---
 
-## Tech Stack
+## 1. Introduction (Goal & Scope)
 
-- **Frontend:** Streamlit (Python)
-- **Backend:** FastAPI (Python)
-- **Database:** SQLite
-- **Infrastructure:** Terraform & Yandex Cloud
-- **Monitoring:** Prometheus, Grafana, Alertmanager
-- **CI/CD:** GitHub Actions & Terraform Cloud
-
----
-
-## Monitoring & Observability
-
-The application includes a self-hosted monitoring stack defined in `docker-compose.yml`:
-
-- **Prometheus:** Scrapes application metrics from the backend's `/metrics` endpoint.
-- **Grafana:** Visualizes metrics (HTTP rates, error ratios, system health).
-  - *Default dashboard:* **Backend Overview**.
-  - *Access:* `http://localhost:3000` (User: `admin`).
-- **Alertmanager:** Handles alerts defined in `monitoring/alerts.yml` (e.g., checks if the Backend is down).
+The **Company Birthday Tracker** was developed to solve the problem of fragmented and insecure employee birthday management. The project provides a centralized MVP service to:
+- **Centralize Data:** Securely store and manage employee records (add/edit/delete).
+- **Increase Visibility:** Provide a user-friendly view of birthdays for today and the next 7 days.
+- **Ensure Security:** Protect data with JWT-based authentication and automated vulnerability scanning.
+- **Maintain Reliability:** Monitor system health and hardware utilization in real-time.
 
 ---
 
-## Infrastructure (IaC)
+## 2. Methods (Architecture & Implementation)
 
-We use **Terraform** for automated deployment to Yandex Cloud via **Terraform Cloud**.
-- **Automated Workflow:** A Pull Request triggers `terraform plan`.
-- **Security Checks:** Our CI pipeline runs `fmt`, `tflint`, and `checkov` to ensure cloud security best practices.
-- **Secrets:** All sensitive keys (Grafana password, SSH keys) are managed as secure variables in Terraform Cloud.
+### 2.1 System Architecture
+The application follows a microservices-inspired architecture deployed via Docker Compose on Yandex Cloud.
+![](./docs/diagram.png)
+
+### 2.2 Tech Stack
+- **Backend:** FastAPI with SQLite.
+- **Frontend:** Streamlit.
+- **IaC:** Terraform Cloudmanaging Yandex Cloud Compute instances.
+- **Observability:** Prometheus, Grafana, and Alertmanager.
+- **Security:** JWT Authentication, Bandit (code scan), and Checkov (IaC scan).
 
 ---
 
-## Developer Guide
+## 3. Results (Implementation & Observability)
 
-### 1. Requirements
-- Python 3.10+ (recommended: 3.12)
-- [Poetry](https://python-poetry.org/)
-- Docker & Docker Compose
+### 3.1 Functional Capabilities
+- **Auth Flow:** Secure Login/Registration via JWT.
+- **Search:** Real-time search of employees by full name.
+- **Persistence:** Local SQLite storage mapped to Docker volumes for data durability.
 
-### 2. Setup and Installation
+### 3.2 Monitoring Metrics
+The system tracks the following key performance indicators (KPIs):
+- **HTTP Latency:** P95/P99 latency per API path.
+- **Error Rates:** Ratio of 5xx errors to total requests.
+- **System Health:** CPU (rate) and Memory (RSS) utilization via `metrics.py`.
+- **Availability:** Auto-alerts via `Alertmanager` if the backend is unreachable for >1 minute.
+
+### 3.3 Quality Assurance
+The CI pipeline ensures all code meets the following standards:
+- **Linting:** Flake8 (PEP8 compliance).
+- **Coverage:** Pytest suite with `pytest-cov` (target > 20% for MVP).
+- **Security:** Zero high-severity issues found by Bandit.
+
+---
+
+## 4. Discussion (Limitations & Future Work)
+
+### 4.1 Limitations
+- **Scaling:** SQLite is restricted to a single-node deployment.
+- **Notifications:** Alertmanager is currently configured with a `noop` receiver; real email/Slack notification integration is pending.
+
+### 4.2 Future Directions
+- **Database Migration:** Move to PostgreSQL for better concurrency.
+- **Advanced Auth:** Implement Role-Based Access Control (RBAC).
+- **Integration:** Add automated birthday greetings via Slack Webhooks.
+
+---
+
+## Developer Guide (Local Setup)
+
 ```bash
-# Install dependencies
+# 1. Install dependencies
 poetry install
 
-# Initialize database
+# 2. Initialize database
 poetry run python scripts/init_db.py
 
-# Install pre-commit hooks
-poetry run pre-commit install
-```
-
-### 3. Running Locally
-
-#### Using Docker Compose (Recommended)
-This starts the App, Database, and the full Monitoring stack:
-```bash
-# Set your Grafana password (or leave for default 'admin')
-$env:GF_SECURITY_ADMIN_PASSWORD="your_password"
+# 3. Run full stack locally
+$env:GF_SECURITY_ADMIN_PASSWORD="admin"
 docker compose up -d --build
-```
-> ℹ️ In production (Terraform Cloud), the Grafana admin password is set via the `GF_SECURITY_ADMIN_PASSWORD` environment variable in the Terraform Cloud workspace settings. Please contact our team  to get the current password.
-
-
-#### Manual Run (for Development)
-```bash
-# Backend
-poetry run uvicorn app.backend.main:app --reload
-
-# Frontend
-poetry run streamlit run app/frontend/streamlit_app.py
-```
-
----
-
-## Quality, Security & Testing
-
-We enforce high code standards through several tools:
-
-- **Tests:** `poetry run pytest tests --cov=app`
-- **Linting:** `poetry run flake8 app/` (PEP8 compliance)
-- **Security:** `poetry run bandit -r app/ -ll` (Code vulnerability scan)
-- **Complexity:** `poetry run radon cc -a -s app/` (Cyclomatic complexity)
-- **Hooks:** Pre-commit hooks run automatically on every `git commit`.
-
----
-
-## Repository Structure
-
-```text
-company-birthday-tracker/
-├─ app/
-│  ├─ backend/      # FastAPI API & Metrics
-│  └─ frontend/     # Streamlit App
-├─ infra/           # Terraform HCL files
-├─ monitoring/      # Prometheus, Grafana, Alertmanager configs
-├─ .github/         # CI/CD (GitHub Actions)
-├─ data/            # Persistence (SQLite)
-├─ scripts/         # DB Initialization
-├─ tests/           # Pytest suite
-└─ pyproject.toml   # Poetry & Tool configs
 ```
