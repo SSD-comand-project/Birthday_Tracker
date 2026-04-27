@@ -4,11 +4,11 @@ A secure Internal service to track employee birthdays, featuring a Streamlit web
 
 ## Application & Monitoring URLs
 
-- **Web Application:** [http://birthday-tracker.duckdns.org:8501/](http://birthday-tracker.duckdns.org:8501/)
+- **Web Application:** [http://birthday-tracker.duckdns.org:8501](http://birthday-tracker.duckdns.org:8501/)
 - **API Docs:** [http://birthday-tracker.duckdns.org:8000/docs](http://birthday-tracker.duckdns.org:8000/docs)
-- **Grafana Dashboards:** [http://birthday-tracker.duckdns.org:3000/](http://birthday-tracker.duckdns.org:3000/)
-- **Prometheus:** [http://birthday-tracker.duckdns.org:9090/](http://birthday-tracker.duckdns.org:9090/)
-- **Alertmanager:** [http://birthday-tracker.duckdns.org:9093/](http://birthday-tracker.duckdns.org:9093/)
+- **Grafana Dashboards:** [http://birthday-tracker.duckdns.org:3000](http://birthday-tracker.duckdns.org:3000/)
+- **Prometheus:** [http://birthday-tracker.duckdns.org:9090](http://birthday-tracker.duckdns.org:9090/)
+- **Alertmanager:** [http://birthday-tracker.duckdns.org:9093](http://birthday-tracker.duckdns.org:9093/)
 
 > ℹ️ For local development, use `localhost` instead of `birthday-tracker.duckdns.org`.
 
