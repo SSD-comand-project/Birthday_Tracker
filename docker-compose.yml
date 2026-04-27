@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: ./app/backend/Dockerfile
-    image: sunflye/birthday-backend:latest
     container_name: birthday-backend
     environment:
       - DB_PATH=/app/data/birthday_tracker.db
@@ -15,9 +14,8 @@ services:
 
   frontend:
     build:
-        context: .
-        dockerfile: ./app/frontend/Dockerfile
-    image: sunflye/birthday-frontend:latest
+      context: .
+      dockerfile: ./app/frontend/Dockerfile
     container_name: birthday-frontend
     environment:
       - API_BASE_URL=http://backend:8000

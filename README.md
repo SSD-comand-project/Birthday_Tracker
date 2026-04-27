@@ -1,196 +1,127 @@
 # Company Birthday Tracker
 
-A simple internal service to track employee birthdays, with a web interface and API.
+A secure Internal service to track employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring.
 
-## Project Goal
+## Application & Monitoring URLs
 
-The goal of this project is to provide an MVP application that allows a company to:
+- **Web Application:** [http://birthday-tracker.duckdns.org:8501/](http://birthday-tracker.duckdns.org:8501/)
+- **API Docs:** [http://birthday-tracker.duckdns.org:8000/docs](http://birthday-tracker.duckdns.org:8000/docs)
+- **Grafana Dashboards:** [http://birthday-tracker.duckdns.org:3000/](http://birthday-tracker.duckdns.org:3000/)
+- **Prometheus:** [http://birthday-tracker.duckdns.org:9090/](http://birthday-tracker.duckdns.org:9090/)
+- **Alertmanager:** [http://birthday-tracker.duckdns.org:9093/](http://birthday-tracker.duckdns.org:9093/)
 
-- store basic employee data,
-- manage employee records (add/edit, optional delete),
-- view upcoming birthdays (today + next 7 days),
-- search employees by full name to see they birthdays,
-- protect management functionality with basic authentication.
+> ℹ️ For local development, use `localhost` instead of `birthday-tracker.duckdns.org`.
+
+
+## Project Goal & Scope
+
+The goal of this project is to provide a reliable MVP application for:
+- **Employee Data Management:** Securely store and manage employee records (add/edit/delete).
+- **Birthday Visibility:** View upcoming birthdays (today + next 7 days).
+- **Search:** Quickly find colleagues by full name.
+- **Security:** Protect management functionality with JWT-based authentication.
+- **Observability:** Monitor system health via a dedicated metrics stack.
 
 ---
 
-## MVP Scope
-
-### Included
-
-- Employee management:
-  - Add employee manually
-  - Edit employee manually
-  - (Optional) Delete employee
-- Upcoming birthdays:
-  - Employees with birthdays **today**
-  - Employees with birthdays in the **next 7 days**
-- Basic admin authentication (username/password)
-- SQLite as a simple local database
-- Streamlit frontend + Python backend API
-- Terraform-based infrastructure configuration
-- CI checks for IaC quality/security:
-  - `terraform fmt -check`
-  - `tflint`
-  - `checkov`
-
-
 ## Tech Stack
 
-- **Frontend:** Streamlit
-- **Backend:** Python (API)
+- **Frontend:** Streamlit (Python)
+- **Backend:** FastAPI (Python)
 - **Database:** SQLite
-- **Infrastructure as Code:** Terraform
-- **CI/CD:** GitHub Actions
-- **IaC quality/security checks:** `terraform fmt`, `tflint`, `checkov`
+- **Infrastructure:** Terraform & Yandex Cloud
+- **Monitoring:** Prometheus, Grafana, Alertmanager
+- **CI/CD:** GitHub Actions & Terraform Cloud
 
+---
+
+## Monitoring & Observability
+
+The application includes a self-hosted monitoring stack defined in `docker-compose.yml`:
+
+- **Prometheus:** Scrapes application metrics from the backend's `/metrics` endpoint.
+- **Grafana:** Visualizes metrics (HTTP rates, error ratios, system health).
+  - *Default dashboard:* **Backend Overview**.
+  - *Access:* `http://localhost:3000` (User: `admin`).
+- **Alertmanager:** Handles alerts defined in `monitoring/alerts.yml` (e.g., checks if the Backend is down).
+
+---
+
+## Infrastructure (IaC)
+
+We use **Terraform** for automated deployment to Yandex Cloud via **Terraform Cloud**.
+- **Automated Workflow:** A Pull Request triggers `terraform plan`.
+- **Security Checks:** Our CI pipeline runs `fmt`, `tflint`, and `checkov` to ensure cloud security best practices.
+- **Secrets:** All sensitive keys (Grafana password, SSH keys) are managed as secure variables in Terraform Cloud.
+
+---
+
+## Developer Guide
+
+### 1. Requirements
+- Python 3.10+ (recommended: 3.12)
+- [Poetry](https://python-poetry.org/)
+- Docker & Docker Compose
+
+### 2. Setup and Installation
+```bash
+# Install dependencies
+poetry install
+
+# Initialize database
+poetry run python scripts/init_db.py
+
+# Install pre-commit hooks
+poetry run pre-commit install
+```
+
+### 3. Running Locally
+
+#### Using Docker Compose (Recommended)
+This starts the App, Database, and the full Monitoring stack:
+```bash
+# Set your Grafana password (or leave for default 'admin')
+$env:GF_SECURITY_ADMIN_PASSWORD="your_password"
+docker compose up -d --build
+```
+> ℹ️ In production (Terraform Cloud), the Grafana admin password is set via the `GF_SECURITY_ADMIN_PASSWORD` environment variable in the Terraform Cloud workspace settings. Please contact our team  to get the current password.
+
+
+#### Manual Run (for Development)
+```bash
+# Backend
+poetry run uvicorn app.backend.main:app --reload
+
+# Frontend
+poetry run streamlit run app/frontend/streamlit_app.py
+```
+
+---
+
+## Quality, Security & Testing
+
+We enforce high code standards through several tools:
+
+- **Tests:** `poetry run pytest tests --cov=app`
+- **Linting:** `poetry run flake8 app/` (PEP8 compliance)
+- **Security:** `poetry run bandit -r app/ -ll` (Code vulnerability scan)
+- **Complexity:** `poetry run radon cc -a -s app/` (Cyclomatic complexity)
+- **Hooks:** Pre-commit hooks run automatically on every `git commit`.
+
+---
 
 ## Repository Structure
 
 ```text
 company-birthday-tracker/
 ├─ app/
-│  ├─ backend/
-│  │  ├─ __init__.py
-│  │  ├─ services/
-│  │  │  ├─ __init__.py
-│  │  │  ├─ users.py
-│  │  │  └─ birthdays.py
-│  │  ├─ routers/
-│  │  │  └─ __init__.py
-│  │  └─ utils/
-│  │     ├─ __init__.py
-│  │     └─ errors.py
-│  └─ frontend/
-├─ infra/
-│  ├─ terraform/
-│  └─ diagrams/
-├─ monitoring/
-│  ├─ healthcheck/
-│  └─ alerts/
-├─ .github/
-│  └─ workflows/
-│     └─ ci.yml
-├─ data/ #db
-├─ scripts/
-│  └─ init_db.py
-├─ tests/
-│  └─ test_services.py
-├─ docs/
-├─ .gitignore
-├─ LICENSE
-├─ pyproject.toml
-├─ poetry.lock
-├─ requirements.txt
-├─ .bandit
-├─ .pre-commit-config.yaml
-├─ .flake8
-└─ README.md
-```
-## Developer Guide
-
-### 1. Requirements
-
-- Python 3.10+ (recommended: 3.12)
-- [Poetry](https://python-poetry.org/)
-- (Optional) `sqlite3` CLI for manual DB checks
-
----
-
-### 2. Install dependencies
-
-```bash
-poetry install # --no-root
-```
-
-If dependencies were changed:
-
-```bash
-poetry lock
-poetry install
-```
-
----
-
-### 3. Initialize database
-
-Database file is stored at `data/birthday_tracker.db` by default.
-
-```bash
-poetry run python scripts/init_db.py
-```
-
-You can override DB path with env variable:
-
-```bash
-# Linux/macOS
-export DB_PATH=./data/test.db
-
-# Windows PowerShell
-$env:DB_PATH = ".\data\test.db"
-```
-
----
-
-### 4. Run application
-
-#### FastAPI backend
-```bash
-poetry run uvicorn app.backend.main:app --reload
-```
-
-#### Streamlit frontend
-```bash
-poetry run streamlit run app/frontend/streamlit_app.py
-```
-
----
-
-### 5. Run tests
-
-```bash
-poetry run pytest -v
-```
-
-With coverage:
-
-```bash
-poetry run pytest tests --cov=app --cov-report=term-missing --cov-report=xml -v
-```
-
----
-
-### 6. Pre-commit hooks
-
-Install hooks once:
-
-```bash
-poetry run pre-commit install
-```
-
-Run manually on all files:
-
-```bash
-poetry run pre-commit run --all-files
-```
-
----
-
-### 7. Lint and security checks
-
-```bash
-poetry run flake8 app/
-poetry run bandit -r app/ -ll
-poetry run radon cc -a -s -n B app/
-poetry run radon mi -s app/
-```
-
----
-
-### 8. SQLite manual checks
-
-Show all users:
-
-```bash
-sqlite3 ./data/birthday_tracker.db ".headers on" ".mode table" "SELECT id, username, full_name, birth_date, created_at, updated_at FROM users ORDER BY id;"
+│  ├─ backend/      # FastAPI API & Metrics
+│  └─ frontend/     # Streamlit App
+├─ infra/           # Terraform HCL files
+├─ monitoring/      # Prometheus, Grafana, Alertmanager configs
+├─ .github/         # CI/CD (GitHub Actions)
+├─ data/            # Persistence (SQLite)
+├─ scripts/         # DB Initialization
+├─ tests/           # Pytest suite
+└─ pyproject.toml   # Poetry & Tool configs
 ```
