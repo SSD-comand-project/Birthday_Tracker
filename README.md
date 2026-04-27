@@ -1,6 +1,7 @@
 # Company Birthday Tracker — Technical Report
 
 A secure Internal service for tracking employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring and automated IaC deployment.
+
 (ДОБАВИТЬ ВЕЗДЕ ПЕРЕМЕННУЮ ДЛЯ JWT, УТУТ ОПИСАТЬ И В ДОКЕР КОМПОЗ)
 
 ## Team
@@ -20,7 +21,7 @@ A secure Internal service for tracking employee birthdays, featuring a Streamlit
 ## 1. Introduction (Goal & Scope)
 
 The **Company Birthday Tracker** was developed to solve the problem of fragmented and insecure employee birthday management. The project provides a centralized MVP service to:
-- **Centralize Data:** Securely store and manage employee records (add/edit/delete).
+- **Centralize Data:** Store and manage employee records (add/edit/delete).
 - **Increase Visibility:** Provide a user-friendly view of birthdays for today and the next 7 days.
 - **Ensure Security:** Protect data with JWT-based authentication and automated vulnerability scanning.
 - **Maintain Reliability:** Monitor system health and hardware utilization in real-time.
@@ -45,16 +46,38 @@ The application follows a microservices-inspired architecture deployed via Docke
 ## 3. Results (Implementation & Observability)
 
 ### 3.1 Functional Capabilities
-- **Auth Flow:** Secure Login/Registration via JWT.
-- **Search:** Real-time search of employees by full name.
-- **Persistence:** Local SQLite storage mapped to Docker volumes for data durability.
+
+The MVP implementation delivers a comprehensive set of features focused on employee data lifecycle and data visibility:
+
+- **Identity & Access Management:**
+    - **JWT-based Authentication:** Implemented using FastAPI Security  with OAuth2 Bearer tokens. Password security is ensured via `bcrypt` hashing (passlib).
+    - **Session Persistence:** The Streamlit frontend manages state using `st.session_state`, ensuring users remain authenticated across different tabs (Today/Upcoming/Profile).
+
+- **Birthday Discovery & Visualization:**
+    - **Dynamic Filtering:** Specialized API endpoints (/birthdays/today and /birthdays/upcoming) provide filtered views based on the server's current date.
+    - **Global Search:** A full-name search feature using SQL `LIKE` patterns allows finding any colleague across the entire database, regardless of their birthday proximity.
+
+- **Self-Service Profile Management:**
+    - **CRUD Operations:** Authenticated users can update their own full name and birth date or completely delete their account, providing full data control for the employee.
+    - **Input Validation:** Strict Pydantic schemas validate that birth dates are in the past and follow the ISO YYYY-MM-DD format.
+
+- **Backend Reliability & Persistence:**
+    - **Data Durability:** Using a mapped SQLite volume (`/app/data`), employee records survive container restarts and updates.
+    - **Auto-Initialization:** The system features a custom startup event that triggers building the database schema (schema.sql) and seeding it with initial data if no database is detected.
 
 ### 3.2 Monitoring Metrics
-The system tracks the following key performance indicators (KPIs):
-- **HTTP Latency:** P95/P99 latency per API path.
-- **Error Rates:** Ratio of 5xx errors to total requests.
-- **System Health:** CPU (rate) and Memory (RSS) utilization via `metrics.py`.
-- **Availability:** Auto-alerts via `Alertmanager` if the backend is unreachable for >1 minute.
+
+The system tracks the following key performance indicators (KPIs) via Grafana dashboards:
+
+- **Backend Up:** Service availability status.
+- **HTTP Requests (rate) by path:** Number of HTTP requests per second for each API path.
+- **5xx Error Rate (ratio):** Proportion of 5xx errors to total requests.
+- **P95 Latency (per path):** 95th percentile of HTTP request latency per path.
+- **P99 Latency (per path):** 99th percentile of HTTP request latency per path.
+- **Process Memory (RSS):** Real-time RAM usage by the backend process.
+- **Process CPU (rate):** Real-time CPU usage by the backend process.
+
+All metrics are collected by Prometheus and visualized in Grafana on the **Backend Overview** dashboard.
 
 ### 3.3 Quality Assurance
 The CI pipeline ensures all code meets the following standards:
@@ -68,7 +91,7 @@ The CI pipeline ensures all code meets the following standards:
 
 ### 4.1 Limitations
 - **Scaling:** SQLite is restricted to a single-node deployment.
-- **Notifications:** - **Notifications:** Alertmanager is currently configured with a `noop` receiver; integration with real notification channels (e.g., email or messengers) is planned.
+- **Notifications:** Alertmanager is currently configured with a `noop` receiver; integration with real notification channels (e.g., email or messengers) is planned.
 
 ### 4.2 Future Directions
 - **Database Migration:** Move to PostgreSQL for better concurrency.
@@ -106,7 +129,7 @@ This starts the App, Database, and the full Monitoring stack:
 $env:GF_SECURITY_ADMIN_PASSWORD="your_password"
 docker compose up -d --build
 ```
-> ℹ️ In production (Terraform Cloud), the Grafana admin password is set via the `GF_SECURITY_ADMIN_PASSWORD` environment variable in the Terraform Cloud workspace settings. Please contact our team  to get the current password.
+> In production (Terraform Cloud), the Grafana admin password is set via the `GF_SECURITY_ADMIN_PASSWORD` environment variable in the Terraform Cloud workspace settings. Please contact our team  to get the current password.
 
 
 #### Manual Run (for Development)
