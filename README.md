@@ -3,6 +3,11 @@
 A secure Internal service for tracking employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring and automated IaC deployment.
 (ДОБАВИТЬ ВЕЗДЕ ПЕРЕМЕННУЮ ДЛЯ JWT, УТУТ ОПИСАТЬ И В ДОКЕР КОМПОЗ)
 
+## Team
+- Sofia Palkina (s.palkina@innopolis.university)
+- Amir Bairamov (a.bairamov@innopolis.university)
+- Polina Kostikova (p.kostikova@innopolis.university)
+
 ## Project Access Points (Cloud)
 
 - **Web Application:** [http://birthday-tracker.duckdns.org:8501](http://birthday-tracker.duckdns.org:8501/)
@@ -63,7 +68,7 @@ The CI pipeline ensures all code meets the following standards:
 
 ### 4.1 Limitations
 - **Scaling:** SQLite is restricted to a single-node deployment.
-- **Notifications:** Alertmanager is currently configured with a `noop` receiver; real email/Slack notification integration is pending.
+- **Notifications:** - **Notifications:** Alertmanager is currently configured with a `noop` receiver; integration with real notification channels (e.g., email or messengers) is planned.
 
 ### 4.2 Future Directions
 - **Database Migration:** Move to PostgreSQL for better concurrency.
@@ -72,16 +77,45 @@ The CI pipeline ensures all code meets the following standards:
 
 ---
 
-## Developer Guide (Local Setup)
+## Developer Guide
 
+### 1. Requirements
+- Python 3.10+ (recommended: 3.12)
+- [Poetry](https://python-poetry.org/)
+- Docker & Docker Compose
+
+### 2. Setup and Installation
 ```bash
-# 1. Install dependencies
+# Install dependencies
 poetry install
 
-# 2. Initialize database
+# (Optional) Manually initialize database (usually not needed)
 poetry run python scripts/init_db.py
 
-# 3. Run full stack locally
-$env:GF_SECURITY_ADMIN_PASSWORD="admin"
+# Install pre-commit hooks
+poetry run pre-commit install
+```
+> The database is automatically initialized on backend startup (both locally and in Docker)
+
+### 3. Running Locally
+
+#### Using Docker Compose (Recommended)
+This starts the App, Database, and the full Monitoring stack:
+```bash
+# Set your Grafana password (or leave for default 'admin')
+$env:GF_SECURITY_ADMIN_PASSWORD="your_password"
 docker compose up -d --build
 ```
+> ℹ️ In production (Terraform Cloud), the Grafana admin password is set via the `GF_SECURITY_ADMIN_PASSWORD` environment variable in the Terraform Cloud workspace settings. Please contact our team  to get the current password.
+
+
+#### Manual Run (for Development)
+```bash
+# Backend
+poetry run uvicorn app.backend.main:app --reload
+
+# Frontend
+poetry run streamlit run app/frontend/streamlit_app.py
+```
+
+---
