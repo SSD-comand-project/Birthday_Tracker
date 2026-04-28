@@ -15,12 +15,12 @@ A secure Internal service for tracking employee birthdays, featuring a Streamlit
 - **Monitoring Tools:** [Prometheus (9090)](http://birthday-tracker.duckdns.org:9090/) | [Alertmanager (9093)](http://birthday-tracker.duckdns.org:9093/)
 
 ---
-
 ## 1. Introduction (Goal & Scope)
 
 The **Company Birthday Tracker** was developed to solve the problem of fragmented and insecure employee birthday management. The project provides a centralized MVP service to:
 - **Centralize Data:** Store and manage employee records (add/edit/delete).
 - **Increase Visibility:** Provide a user-friendly view of birthdays for today and the next 7 days.
+- **Search & Discovery:** Quickly find any colleague's birthday by their name using real-time search.
 - **Ensure Security:** Protect data with JWT-based authentication and automated vulnerability scanning.
 - **Maintain Reliability:** Monitor system health and hardware utilization in real-time.
 
