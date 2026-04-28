@@ -33,7 +33,7 @@ The primary goal of this project is to implement a **Secure Infrastructure-as-Co
 The application follows a microservices-inspired architecture deployed via Docker Compose on Yandex Cloud.
 ![](./docs/diagram.png)
 
-### 2.2 automated IaC Workflow
+### 2.2 Automated IaC Workflow
 - **Infrastructure Provider:** [Yandex Cloud](infra/providers.tf) managed via [Terraform](infra/).
 - **Deployment Automation:** Integrated with **Terraform Cloud** for state management and execution. Merges to the `main` branch trigger automated infrastructure updates.
 - **Continuous Integration (GitHub Actions):** Every Pull Request undergoes a rigorous "Security Gate" before it can be merged.
