@@ -39,7 +39,7 @@ The application follows a microservices-inspired architecture deployed via Docke
 - **Continuous Integration (GitHub Actions):** Every Pull Request undergoes a rigorous "Security Gate" before it can be merged.
 
 ### 2.3 Security Tooling (The "Security Gate")
-We implemented a multi-layered scanning approach in our [.github/workflows/ci.yml](.github/workflows/ci.yml):
+We implemented a multi-layered scanning approach in our `.github/workflows/ci.yml`:
 1. **Checkov:** Scans Terraform files for security misconfigurations (e.g., public IP exposure, missing encryption).
 2. **TFLint** Validates provider-specific best practices and potential errors.
 3. **Terraform fmt:** Ensures consistent code style and readability across all Infra files.
