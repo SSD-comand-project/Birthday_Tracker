@@ -70,7 +70,7 @@ A comprehensive monitoring solution was deployed to ensure the continuous system
 ### 3.2 Infrastructure Security Validation
 Using **Checkov** and **TFLint**, we identified and managed infrastructure risks within the IaC pipeline:
 - **Risk Mitigation:** Checkov ensured that security groups only open required ports (8000, 8501, 3000, 9090) and validated that no administrative ports are globally exposed except restricted SSH.
-- **Hardened Secrets:** Sensitive data like `SECRET_KEY` and `GF_SECURITY_ADMIN_PASSWORD` are **never stored in git**. They are managed as **Sensitive Variables** in Terraform Cloud and injected into the [VM metadata](infra/vm.tf) at runtime.
+- **Hardened Secrets:** Sensitive data like `SECRET_KEY` and `GF_SECURITY_ADMIN_PASSWORD` are **never stored in git**. They are managed as **Sensitive Variables** in Terraform Cloud and injected into the VM metadata at runtime.
 
 ### 3.3 CI/CD & Quality Assurance
 - **Security Gates:** 100% of merged PRs passed `terraform fmt`, `tflint`, and `checkov` scans. Python code is verified by `Bandit` for security vulnerabilities.
