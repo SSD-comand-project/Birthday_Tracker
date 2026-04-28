@@ -57,7 +57,7 @@ We implemented a multi-layered scanning approach in our [.github/workflows/ci.ym
 ## 3. Results (Implementation & Observability)
 
 ### 3.1 Observability Stack Implementation
-A comprehensive monitoring solution was deployed to ensure the system's "Day 2" operational readiness and service visibility.
+A comprehensive monitoring solution was deployed to ensure the continuous system reliability and real-time visibility.
 
 - **Metrics Collection:** Prometheus is configured to scrape the FastAPI `/metrics` endpoint every 15s.
 - **Visualization:** A custom Grafana Dashboard  tracks key performance indicators:
