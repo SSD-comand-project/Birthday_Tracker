@@ -139,5 +139,4 @@ docker compose up -d --build
 
 > In production (Terraform Cloud), these credentials are set via **Sensitive Environment Variables** in the workspace settings.  Please contact our team to obtain the Grafana access password.
 
-
 ---
