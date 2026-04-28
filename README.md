@@ -2,8 +2,6 @@
 
 A secure Internal service for tracking employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring and automated IaC deployment.
 
-(ДОБАВИТЬ ВЕЗДЕ ПЕРЕМЕННУЮ ДЛЯ JWT, УТУТ ОПИСАТЬ И В ДОКЕР КОМПОЗ)
-
 ## Team
 - Sofia Palkina (s.palkina@innopolis.university)
 - Amir Bairamov (a.bairamov@innopolis.university)
@@ -122,23 +120,21 @@ poetry run pre-commit install
 
 ### 3. Running Locally
 
-#### Using Docker Compose (Recommended)
-This starts the App, Database, and the full Monitoring stack:
-```bash
-# Set your Grafana password (or leave for default 'admin')
-$env:GF_SECURITY_ADMIN_PASSWORD="your_password"
+**Windows (PowerShell):**
+```powershell
+$env:GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
+$env:SECRET_KEY="your_long_random_jwt_secret"
 docker compose up -d --build
 ```
-> In production (Terraform Cloud), the Grafana admin password is set via the `GF_SECURITY_ADMIN_PASSWORD` environment variable in the Terraform Cloud workspace settings. Please contact our team  to get the current password.
 
-
-#### Manual Run (for Development)
+**Linux / macOS:**
 ```bash
-# Backend
-poetry run uvicorn app.backend.main:app --reload
-
-# Frontend
-poetry run streamlit run app/frontend/streamlit_app.py
+export GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
+export SECRET_KEY="your_long_random_jwt_secret"
+docker compose up -d --build
 ```
+
+> In production (Terraform Cloud), these credentials are set via **Sensitive Environment Variables** in the workspace settings. Please contact our team to obtain the Grafana access password.
+
 
 ---
