@@ -83,6 +83,19 @@ While the focus remains on infrastructure, the deployed application provides:
 - **Data Lifecycle:** Full CRUD for employee profiles with automated SQLite persistence via Docker volumes.
 - **Discovery:** Real-time search by full name and filtered views for upcoming birthdays.
 
+### 3.5 Infrastructure Management
+After creating Merge Request (MR) in `main` branch, the CI/CD pipeline trigger a Terraform Cloud. During the ckecks, Terraform Cloud start `terraform plan`.
+
+![](./docs/terraform_plan.png)
+
+After the successful `terraform plan` and after succesful merge in `main` branch, Terraform Cloud start `terraform apply`, which creates infrastructure in Yandex Cloud.
+
+![](./docs/terraform_apply.png)
+
+Created infrastructure in Yandex Cloud:
+
+![](./docs/yandex_cloud.png)
+
 ---
 ## 4. Discussion (Architecture & Evolution)
 
