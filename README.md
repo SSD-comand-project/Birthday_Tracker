@@ -1,4 +1,4 @@
-# Company Birthday Tracker — Technical Report
+# Company Birthday Tracker
 
 A secure Internal service for tracking employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring and automated IaC deployment.
 
@@ -17,12 +17,13 @@ A secure Internal service for tracking employee birthdays, featuring a Streamlit
 ---
 ## 1. Introduction (Goal & Scope)
 
-The **Company Birthday Tracker** was developed to solve the problem of fragmented and insecure employee birthday management. The project provides a centralized MVP service to:
-- **Centralize Data:** Store and manage employee records (add/edit/delete).
-- **Increase Visibility:** Provide a user-friendly view of birthdays for today and the next 7 days.
-- **Search & Discovery:** Quickly find any colleague's birthday by their name using real-time search.
-- **Ensure Security:** Protect data with JWT-based authentication and automated vulnerability scanning.
-- **Maintain Reliability:** Monitor system health and hardware utilization in real-time.
+The primary goal of this project is to implement a **Secure Infrastructure-as-Code (IaC) lifecycle** and a robust **Observability stack** for a cloud-native environment. Using an internal "Birthday Tracker" application as a pilot workload, the project demonstrates:
+
+- **Automated IaC Governance:** Implementing a CI/CD pipeline that enforces security standards through automated scanning of Terraform configurations.
+- **Shift-Left Security:** Integrating static analysis tools into the development workflow to detect infrastructure misconfigurations and code vulnerabilities before they reach production.
+- **Comprehensive Observability:** Establishing a real-time monitoring and alerting framework to provide visibility into system health, performance (SLIs), and saturation.
+- **Secure Cloud Provisioning:** Utilizing **Terraform Cloud** for state management and automated deployment to **Yandex Cloud**, ensuring sensitive data and secrets are managed outside of version control.
+- **Service Assurance:** Verifying the reliability of the deployed environment through proactive health checks and automated metric collection.
 
 ---
 
@@ -32,7 +33,19 @@ The **Company Birthday Tracker** was developed to solve the problem of fragmente
 The application follows a microservices-inspired architecture deployed via Docker Compose on Yandex Cloud.
 ![](./docs/diagram.png)
 
-### 2.2 Tech Stack
+### 2.2 Automated IaC Workflow
+- **Infrastructure Provider:** [Yandex Cloud](infra/providers.tf) managed via [Terraform](infra/).
+- **Deployment Automation:** Integrated with **Terraform Cloud** for state management and execution. Merges to the `main` branch trigger automated infrastructure updates.
+- **Continuous Integration (GitHub Actions):** Every Pull Request undergoes a rigorous "Security Gate" before it can be merged.
+
+### 2.3 Security Tooling (The "Security Gate")
+We implemented a multi-layered scanning approach in our `.github/workflows/ci.yml`:
+1. **Checkov:** Scans Terraform files for security misconfigurations (e.g., public IP exposure, missing encryption).
+2. **TFLint** Validates provider-specific best practices and potential errors.
+3. **Terraform fmt:** Ensures consistent code style and readability across all Infra files.
+4. **Bandit:** Scans the Python backend for security vulnerabilities (injection, weak crypto).
+
+### 2.4 Tech Stack
 - **Backend:** FastAPI with SQLite.
 - **Frontend:** Streamlit.
 - **IaC:** Terraform Cloudmanaging Yandex Cloud Compute instances.
@@ -43,98 +56,60 @@ The application follows a microservices-inspired architecture deployed via Docke
 
 ## 3. Results (Implementation & Observability)
 
-### 3.1 Functional Capabilities
+### 3.1 Observability Stack Implementation
+A comprehensive monitoring solution was deployed to ensure the continuous system reliability and real-time visibility.
 
-The MVP implementation delivers a comprehensive set of features focused on employee data lifecycle and data visibility:
+- **Metrics Collection:** Prometheus is configured to scrape the FastAPI `/metrics` endpoint every 15s.
+- **Visualization:** A custom Grafana Dashboard  tracks key performance indicators:
+    - **Availability:** Real-time "Up" status of the backend.
+    - **Traffic & Errors:** HTTP request rates and 5xx error ratios via PromQL.
+    - **Performance:** P95 and P99 latency distribution per API path.
+    - **Saturation:** Process-level CPU and Memory (RSS) utilization.
+- **Proactive Alerting:** Alertmanager handles critical alerts defined in alerts.yml, such as `BackendDown` or `High5xxRate`.
 
-- **Identity & Access Management:**
-    - **JWT-based Authentication:** Implemented using FastAPI Security  with OAuth2 Bearer tokens. Password security is ensured via `bcrypt` hashing (passlib).
-    - **Session Persistence:** The Streamlit frontend manages state using `st.session_state`, ensuring users remain authenticated across different tabs (Today/Upcoming/Profile).
+### 3.2 Infrastructure Security Validation
+Using **Checkov** and **TFLint**, we identified and managed infrastructure risks within the IaC pipeline:
+- **Risk Mitigation:** Checkov ensured that security groups only open required ports (8000, 8501, 3000, 9090) and validated that no administrative ports are globally exposed except restricted SSH.
+- **Hardened Secrets:** Sensitive data like `SECRET_KEY` and `GF_SECURITY_ADMIN_PASSWORD` are **never stored in git**. They are managed as **Sensitive Variables** in Terraform Cloud and injected into the VM metadata at runtime.
 
-- **Birthday Discovery & Visualization:**
-    - **Dynamic Filtering:** Specialized API endpoints (/birthdays/today and /birthdays/upcoming) provide filtered views based on the server's current date.
-    - **Global Search:** A full-name search feature using SQL `LIKE` patterns allows finding any colleague across the entire database, regardless of their birthday proximity.
+### 3.3 CI/CD & Quality Assurance
+- **Security Gates:** 100% of merged PRs passed `terraform fmt`, `tflint`, and `checkov` scans. Python code is verified by `Bandit` for security vulnerabilities.
+- **Deployment Speed:** Automated deployment from code change to live cloud environment (Terraform Cloud + Yandex Cloud) takes less than 5 minutes.
+- **Code Standards:** Linting via Flake8 and testing via Pytest ensure the maintainability of the application logic.
 
-- **Self-Service Profile Management:**
-    - **CRUD Operations:** Authenticated users can update their own full name and birth date or completely delete their account, providing full data control for the employee.
-    - **Input Validation:** Strict Pydantic schemas validate that birth dates are in the past and follow the ISO YYYY-MM-DD format.
+### 3.4 Functional Capabilities (App MVP)
+While the focus remains on infrastructure, the deployed application provides:
+- **Secure Auth:** JWT-based authentication with bcrypt password hashing.
+- **Data Lifecycle:** Full CRUD for employee profiles with automated SQLite persistence via Docker volumes.
+- **Discovery:** Real-time search by full name and filtered views for upcoming birthdays.
 
-- **Backend Reliability & Persistence:**
-    - **Data Durability:** Using a mapped SQLite volume (`/app/data`), employee records survive container restarts and updates.
-    - **Auto-Initialization:** The system features a custom startup event that triggers building the database schema (schema.sql) and seeding it with initial data if no database is detected.
+### 3.5 Infrastructure Management
+After creating Merge Request (MR) in `main` branch, the CI/CD pipeline trigger a Terraform Cloud. During the ckecks, Terraform Cloud start `terraform plan`.
 
-### 3.2 Monitoring Metrics
+![](./docs/terraform_plan.png)
 
-The system tracks the following key performance indicators (KPIs) via Grafana dashboards:
+After the successful `terraform plan` and after succesful merge in `main` branch, Terraform Cloud start `terraform apply`, which creates infrastructure in Yandex Cloud.
 
-- **Backend Up:** Service availability status.
-- **HTTP Requests (rate) by path:** Number of HTTP requests per second for each API path.
-- **5xx Error Rate (ratio):** Proportion of 5xx errors to total requests.
-- **P95 Latency (per path):** 95th percentile of HTTP request latency per path.
-- **P99 Latency (per path):** 99th percentile of HTTP request latency per path.
-- **Process Memory (RSS):** Real-time RAM usage by the backend process.
-- **Process CPU (rate):** Real-time CPU usage by the backend process.
+![](./docs/terraform_apply.png)
 
-All metrics are collected by Prometheus and visualized in Grafana on the **Backend Overview** dashboard.
+Created infrastructure in Yandex Cloud:
 
-### 3.3 Quality Assurance
-The CI pipeline ensures all code meets the following standards:
-- **Linting:** Flake8 (PEP8 compliance).
-- **Coverage:** Pytest suite with `pytest-cov` (target > 20% for MVP).
-- **Security:** Zero high-severity issues found by Bandit.
-
----
-
-## 4. Discussion (Limitations & Future Work)
-
-### 4.1 Limitations
-- **Scaling:** SQLite is restricted to a single-node deployment.
-- **Notifications:** Alertmanager is currently configured with a `noop` receiver; integration with real notification channels (e.g., email or messengers) is planned.
-
-### 4.2 Future Directions
-- **Database Migration:** Move to PostgreSQL for better concurrency.
-- **Advanced Auth:** Implement Role-Based Access Control (RBAC).
-- **Integration:** Add automated birthday greetings via Slack Webhooks.
+![](./docs/yandex_cloud.png)
 
 ---
+## 4. Discussion (Architecture & Evolution)
 
-## Developer Guide
+### 4.1 Architectural Choices
+- **Data Persistence:** SQLite was chosen for the MVP to ensure high portability and zero-dependency deployment. The architecture is ready for a seamless migration to a multi-node DB as the user base grows.
+- **Pluggable Alerting:** Alertmanager is currently using a `noop` receiver for demonstration. The pipeline is designed to be "pluggable," allowing instant integration with Slack or Email without core logic changes.
+- **Metric-Driven Observability:** By focusing on Prometheus metrics, we achieved high visibility into system health (SLIs/SLOs) while maintaining a minimal resource footprint on the cloud instance.
 
-### 1. Requirements
-- Python 3.10+ (recommended: 3.12)
-- [Poetry](https://python-poetry.org/)
-- Docker & Docker Compose
+### 4.2 Security Posture
+- **Shift-Left Security:** Integration of **Checkov** and **Bandit** into the CI pipeline ensures that infrastructure and code vulnerabilities are detected before deployment. This forms a solid foundation for future DAST implementation.
 
-### 2. Setup and Installation
-```bash
-# Install dependencies
-poetry install
-
-# (Optional) Manually initialize database (usually not needed)
-poetry run python scripts/init_db.py
-
-# Install pre-commit hooks
-poetry run pre-commit install
-```
-> The database is automatically initialized on backend startup (both locally and in Docker)
-
-### 3. Running Locally
-
-**Windows (PowerShell):**
-```powershell
-$env:GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
-$env:SECRET_KEY="your_long_random_jwt_secret"
-docker compose up -d --build
-```
-
-**Linux / macOS:**
-```bash
-export GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
-export SECRET_KEY="your_long_random_jwt_secret"
-docker compose up -d --build
-```
-
-> In production (Terraform Cloud), these credentials are set via **Sensitive Environment Variables** in the workspace settings.  Please contact our team to obtain the Grafana access password.
-
-
+### 4.3 Strategic Roadmap
+- **Scalability:** Migrate to **Managed PostgreSQL** for high availability and automated backups.
+- **Access Control:** Implement **RBAC** and OAuth2/SSO integration to meet corporate security standards.
+- **Auto-Remediation:** Enhance the monitoring stack to trigger automated service recovery via custom webhooks.
+- **Secret Shielding:** Transition to **HashiCorp Vault** or Yandex Lockbox for dynamic secret rotation.
 ---
