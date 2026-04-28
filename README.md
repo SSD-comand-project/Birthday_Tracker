@@ -39,7 +39,7 @@ The application follows a microservices-inspired architecture deployed via Docke
 - **Continuous Integration (GitHub Actions):** Every Pull Request undergoes a rigorous "Security Gate" before it can be merged.
 
 ### 2.3 Security Tooling (The "Security Gate")
-We implemented a multi-layered scanning approach in our [.github/workflows/ci.yml](.github/workflows/ci.yml):
+We implemented a multi-layered scanning approach in our `.github/workflows/ci.yml`:
 1. **Checkov:** Scans Terraform files for security misconfigurations (e.g., public IP exposure, missing encryption).
 2. **TFLint** Validates provider-specific best practices and potential errors.
 3. **Terraform fmt:** Ensures consistent code style and readability across all Infra files.
@@ -70,7 +70,7 @@ A comprehensive monitoring solution was deployed to ensure the continuous system
 ### 3.2 Infrastructure Security Validation
 Using **Checkov** and **TFLint**, we identified and managed infrastructure risks within the IaC pipeline:
 - **Risk Mitigation:** Checkov ensured that security groups only open required ports (8000, 8501, 3000, 9090) and validated that no administrative ports are globally exposed except restricted SSH.
-- **Hardened Secrets:** Sensitive data like `SECRET_KEY` and `GF_SECURITY_ADMIN_PASSWORD` are **never stored in git**. They are managed as **Sensitive Variables** in Terraform Cloud and injected into the [VM metadata](infra/vm.tf) at runtime.
+- **Hardened Secrets:** Sensitive data like `SECRET_KEY` and `GF_SECURITY_ADMIN_PASSWORD` are **never stored in git**. They are managed as **Sensitive Variables** in Terraform Cloud and injected into the VM metadata at runtime.
 
 ### 3.3 CI/CD & Quality Assurance
 - **Security Gates:** 100% of merged PRs passed `terraform fmt`, `tflint`, and `checkov` scans. Python code is verified by `Bandit` for security vulnerabilities.
@@ -112,45 +112,4 @@ Created infrastructure in Yandex Cloud:
 - **Access Control:** Implement **RBAC** and OAuth2/SSO integration to meet corporate security standards.
 - **Auto-Remediation:** Enhance the monitoring stack to trigger automated service recovery via custom webhooks.
 - **Secret Shielding:** Transition to **HashiCorp Vault** or Yandex Lockbox for dynamic secret rotation.
----
-
-## Developer Guide
-
-### 1. Requirements
-- Python 3.10+ (recommended: 3.12)
-- [Poetry](https://python-poetry.org/)
-- Docker & Docker Compose
-
-### 2. Setup and Installation
-```bash
-# Install dependencies
-poetry install
-
-# (Optional) Manually initialize database (usually not needed)
-poetry run python scripts/init_db.py
-
-# Install pre-commit hooks
-poetry run pre-commit install
-```
-> The database is automatically initialized on backend startup (both locally and in Docker)
-
-### 3. Running Locally
-
-**Windows (PowerShell):**
-```powershell
-$env:GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
-$env:SECRET_KEY="your_long_random_jwt_secret"
-docker compose up -d --build
-```
-
-**Linux / macOS:**
-```bash
-export GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
-export SECRET_KEY="your_long_random_jwt_secret"
-docker compose up -d --build
-```
-
-> In production (Terraform Cloud), these credentials are set via **Sensitive Environment Variables** in the workspace settings.  Please contact our team to obtain the Grafana access password.
-
-
 ---
