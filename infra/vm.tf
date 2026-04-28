@@ -53,6 +53,7 @@ write_files:
           container_name: birthday-backend
           environment:
             - DB_PATH=/app/data/birthday_tracker.db
+            - SECRET_KEY=${var.SECRET_KEY}
           volumes:
             - /app/data:/app/data
           ports:

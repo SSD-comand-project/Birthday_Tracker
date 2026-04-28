@@ -1,196 +1,140 @@
-# Company Birthday Tracker
+# Company Birthday Tracker — Technical Report
 
-A simple internal service to track employee birthdays, with a web interface and API.
+A secure Internal service for tracking employee birthdays, featuring a Streamlit web interface and a FastAPI backend with integrated monitoring and automated IaC deployment.
 
-## Project Goal
+## Team
+- Sofia Palkina (s.palkina@innopolis.university)
+- Amir Bairamov (a.bairamov@innopolis.university)
+- Polina Kostikova (p.kostikova@innopolis.university)
 
-The goal of this project is to provide an MVP application that allows a company to:
+## Project Access Points (Cloud)
 
-- store basic employee data,
-- manage employee records (add/edit, optional delete),
-- view upcoming birthdays (today + next 7 days),
-- search employees by full name to see they birthdays,
-- protect management functionality with basic authentication.
+- **Web Application:** [http://birthday-tracker.duckdns.org:8501](http://birthday-tracker.duckdns.org:8501/)
+- **API Docs (Swagger):** [http://birthday-tracker.duckdns.org:8000/docs](http://birthday-tracker.duckdns.org:8000/docs)
+- **Grafana Dashboards:** [http://birthday-tracker.duckdns.org:3000](http://birthday-tracker.duckdns.org:3000/)
+- **Monitoring Tools:** [Prometheus (9090)](http://birthday-tracker.duckdns.org:9090/) | [Alertmanager (9093)](http://birthday-tracker.duckdns.org:9093/)
+
+---
+## 1. Introduction (Goal & Scope)
+
+The **Company Birthday Tracker** was developed to solve the problem of fragmented and insecure employee birthday management. The project provides a centralized MVP service to:
+- **Centralize Data:** Store and manage employee records (add/edit/delete).
+- **Increase Visibility:** Provide a user-friendly view of birthdays for today and the next 7 days.
+- **Search & Discovery:** Quickly find any colleague's birthday by their name using real-time search.
+- **Ensure Security:** Protect data with JWT-based authentication and automated vulnerability scanning.
+- **Maintain Reliability:** Monitor system health and hardware utilization in real-time.
 
 ---
 
-## MVP Scope
+## 2. Methods (Architecture & Implementation)
 
-### Included
+### 2.1 System Architecture
+The application follows a microservices-inspired architecture deployed via Docker Compose on Yandex Cloud.
+![](./docs/diagram.png)
 
-- Employee management:
-  - Add employee manually
-  - Edit employee manually
-  - (Optional) Delete employee
-- Upcoming birthdays:
-  - Employees with birthdays **today**
-  - Employees with birthdays in the **next 7 days**
-- Basic admin authentication (username/password)
-- SQLite as a simple local database
-- Streamlit frontend + Python backend API
-- Terraform-based infrastructure configuration
-- CI checks for IaC quality/security:
-  - `terraform fmt -check`
-  - `tflint`
-  - `checkov`
+### 2.2 Tech Stack
+- **Backend:** FastAPI with SQLite.
+- **Frontend:** Streamlit.
+- **IaC:** Terraform Cloudmanaging Yandex Cloud Compute instances.
+- **Observability:** Prometheus, Grafana, and Alertmanager.
+- **Security:** JWT Authentication, Bandit (code scan), and Checkov (IaC scan).
 
+---
 
-## Tech Stack
+## 3. Results (Implementation & Observability)
 
-- **Frontend:** Streamlit
-- **Backend:** Python (API)
-- **Database:** SQLite
-- **Infrastructure as Code:** Terraform
-- **CI/CD:** GitHub Actions
-- **IaC quality/security checks:** `terraform fmt`, `tflint`, `checkov`
+### 3.1 Functional Capabilities
 
+The MVP implementation delivers a comprehensive set of features focused on employee data lifecycle and data visibility:
 
-## Repository Structure
+- **Identity & Access Management:**
+    - **JWT-based Authentication:** Implemented using FastAPI Security  with OAuth2 Bearer tokens. Password security is ensured via `bcrypt` hashing (passlib).
+    - **Session Persistence:** The Streamlit frontend manages state using `st.session_state`, ensuring users remain authenticated across different tabs (Today/Upcoming/Profile).
 
-```text
-company-birthday-tracker/
-├─ app/
-│  ├─ backend/
-│  │  ├─ __init__.py
-│  │  ├─ services/
-│  │  │  ├─ __init__.py
-│  │  │  ├─ users.py
-│  │  │  └─ birthdays.py
-│  │  ├─ routers/
-│  │  │  └─ __init__.py
-│  │  └─ utils/
-│  │     ├─ __init__.py
-│  │     └─ errors.py
-│  └─ frontend/
-├─ infra/
-│  ├─ terraform/
-│  └─ diagrams/
-├─ monitoring/
-│  ├─ healthcheck/
-│  └─ alerts/
-├─ .github/
-│  └─ workflows/
-│     └─ ci.yml
-├─ data/ #db
-├─ scripts/
-│  └─ init_db.py
-├─ tests/
-│  └─ test_services.py
-├─ docs/
-├─ .gitignore
-├─ LICENSE
-├─ pyproject.toml
-├─ poetry.lock
-├─ requirements.txt
-├─ .bandit
-├─ .pre-commit-config.yaml
-├─ .flake8
-└─ README.md
-```
+- **Birthday Discovery & Visualization:**
+    - **Dynamic Filtering:** Specialized API endpoints (/birthdays/today and /birthdays/upcoming) provide filtered views based on the server's current date.
+    - **Global Search:** A full-name search feature using SQL `LIKE` patterns allows finding any colleague across the entire database, regardless of their birthday proximity.
+
+- **Self-Service Profile Management:**
+    - **CRUD Operations:** Authenticated users can update their own full name and birth date or completely delete their account, providing full data control for the employee.
+    - **Input Validation:** Strict Pydantic schemas validate that birth dates are in the past and follow the ISO YYYY-MM-DD format.
+
+- **Backend Reliability & Persistence:**
+    - **Data Durability:** Using a mapped SQLite volume (`/app/data`), employee records survive container restarts and updates.
+    - **Auto-Initialization:** The system features a custom startup event that triggers building the database schema (schema.sql) and seeding it with initial data if no database is detected.
+
+### 3.2 Monitoring Metrics
+
+The system tracks the following key performance indicators (KPIs) via Grafana dashboards:
+
+- **Backend Up:** Service availability status.
+- **HTTP Requests (rate) by path:** Number of HTTP requests per second for each API path.
+- **5xx Error Rate (ratio):** Proportion of 5xx errors to total requests.
+- **P95 Latency (per path):** 95th percentile of HTTP request latency per path.
+- **P99 Latency (per path):** 99th percentile of HTTP request latency per path.
+- **Process Memory (RSS):** Real-time RAM usage by the backend process.
+- **Process CPU (rate):** Real-time CPU usage by the backend process.
+
+All metrics are collected by Prometheus and visualized in Grafana on the **Backend Overview** dashboard.
+
+### 3.3 Quality Assurance
+The CI pipeline ensures all code meets the following standards:
+- **Linting:** Flake8 (PEP8 compliance).
+- **Coverage:** Pytest suite with `pytest-cov` (target > 20% for MVP).
+- **Security:** Zero high-severity issues found by Bandit.
+
+---
+
+## 4. Discussion (Limitations & Future Work)
+
+### 4.1 Limitations
+- **Scaling:** SQLite is restricted to a single-node deployment.
+- **Notifications:** Alertmanager is currently configured with a `noop` receiver; integration with real notification channels (e.g., email or messengers) is planned.
+
+### 4.2 Future Directions
+- **Database Migration:** Move to PostgreSQL for better concurrency.
+- **Advanced Auth:** Implement Role-Based Access Control (RBAC).
+- **Integration:** Add automated birthday greetings via Slack Webhooks.
+
+---
+
 ## Developer Guide
 
 ### 1. Requirements
-
 - Python 3.10+ (recommended: 3.12)
 - [Poetry](https://python-poetry.org/)
-- (Optional) `sqlite3` CLI for manual DB checks
+- Docker & Docker Compose
 
----
-
-### 2. Install dependencies
-
+### 2. Setup and Installation
 ```bash
-poetry install # --no-root
-```
-
-If dependencies were changed:
-
-```bash
-poetry lock
+# Install dependencies
 poetry install
-```
 
----
-
-### 3. Initialize database
-
-Database file is stored at `data/birthday_tracker.db` by default.
-
-```bash
+# (Optional) Manually initialize database (usually not needed)
 poetry run python scripts/init_db.py
-```
 
-You can override DB path with env variable:
-
-```bash
-# Linux/macOS
-export DB_PATH=./data/test.db
-
-# Windows PowerShell
-$env:DB_PATH = ".\data\test.db"
-```
-
----
-
-### 4. Run application
-
-#### FastAPI backend
-```bash
-poetry run uvicorn app.backend.main:app --reload
-```
-
-#### Streamlit frontend
-```bash
-poetry run streamlit run app/frontend/streamlit_app.py
-```
-
----
-
-### 5. Run tests
-
-```bash
-poetry run pytest -v
-```
-
-With coverage:
-
-```bash
-poetry run pytest tests --cov=app --cov-report=term-missing --cov-report=xml -v
-```
-
----
-
-### 6. Pre-commit hooks
-
-Install hooks once:
-
-```bash
+# Install pre-commit hooks
 poetry run pre-commit install
 ```
+> The database is automatically initialized on backend startup (both locally and in Docker)
 
-Run manually on all files:
+### 3. Running Locally
 
-```bash
-poetry run pre-commit run --all-files
+**Windows (PowerShell):**
+```powershell
+$env:GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
+$env:SECRET_KEY="your_long_random_jwt_secret"
+docker compose up -d --build
 ```
+
+**Linux / macOS:**
+```bash
+export GF_SECURITY_ADMIN_PASSWORD="your_secure_password"
+export SECRET_KEY="your_long_random_jwt_secret"
+docker compose up -d --build
+```
+
+> In production (Terraform Cloud), these credentials are set via **Sensitive Environment Variables** in the workspace settings.  Please contact our team to obtain the Grafana access password.
+
 
 ---
-
-### 7. Lint and security checks
-
-```bash
-poetry run flake8 app/
-poetry run bandit -r app/ -ll
-poetry run radon cc -a -s -n B app/
-poetry run radon mi -s app/
-```
-
----
-
-### 8. SQLite manual checks
-
-Show all users:
-
-```bash
-sqlite3 ./data/birthday_tracker.db ".headers on" ".mode table" "SELECT id, username, full_name, birth_date, created_at, updated_at FROM users ORDER BY id;"
-```
